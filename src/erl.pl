@@ -1,6 +1,6 @@
 % Program to scan a file and assemble identifiers,
 % sequences of special characters, numbers and delimiters.
-:- module( erl, [run/1, run/2] ).
+%:- module( erl, [run/1, run/2, p] ).
 
 :- use_module( scan, [scan/2, reap_tokens/2] ).
 
@@ -37,4 +37,11 @@ start_scan([List|OtherResults]) :-
     ).
     
     
-    
+% parsing terms: either ATTRIBUTE or FUNCTION
+% parse_term([-,module,'(',simple,')','.'], A).
+% is_attribute([-,module,'(',simple,')','.']).
+% is_attribute([-,alma,'(',simple,')','.']).
+% is_attribute([alma,module,'(',simple,')','.']).
+parse_term(Term=[-|_], attribute(Term)).
+
+is_attribute([-,module|_]).

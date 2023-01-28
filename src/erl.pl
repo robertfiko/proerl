@@ -1,6 +1,6 @@
 % Program to scan a file and assemble identifiers,
 % sequences of special characters, numbers and delimiters.
-%:- module( erl, [run/1, run/2, p] ).
+:- module( erl, [run/1, run/2] ).
 
 :- use_module( scan, [scan/2, reap_tokens/2] ).
 :- use_module(library(lists)).
@@ -47,9 +47,13 @@ parse_term(['-'|Rest], Node) :- attribute(['-'|Rest], Node).
 split_on(List, Element, Left, Right) :-
     append(Left, [Element|Right], List).
 
-
+% attribute([-,module,'(',simple,')','.'], R).
+% attribute([-,export,'(','[',foo,/,1,']',')','.'], R).
 attribute([-,module,'(',ModuleName,')','.'], '<MOD>'(ModuleName)).
-attribute([-,export, '(', ExportList, ')', '.'], '<EXP>'(ExportList)).
+attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
+    split_on(Rest, '[', ['('], ExpList0), % left side of split_on is to ensure syntax
+    split_on(ExpList0, ']', ExportList, [')','.']). % right side of split_on is to ensure syntax
+    %exclude(=(','), Arglist0, Arglist). % TODO: explain this
 
 % [[-,module,'(',simple,')','.'],[-,export,'(','[',foo,/,1,']',')','.'],[],[foo,'(','_',')',->,ok,'.']]
 % [foo,'(','_',')',->,ok,'.']
@@ -149,5 +153,4 @@ eval_arith('<EXPR>'(L, O, R), Result) :-
     eval_arith(R, RRes),
     do_math(LRes, O, RRes, Result).
     
-eval_expression('<EXPR>'(L, O, R), Result) :-
     

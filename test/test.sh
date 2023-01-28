@@ -4,6 +4,7 @@
 #RESULT=$(sicstus -l test/runner.pl --goal "run_tests(_), halt.")
 
 # For Swi
+pwd
 RESULT=$(swipl -l test/runner.pl -g "run_tests(_), halt.")
 
 echo "-----"

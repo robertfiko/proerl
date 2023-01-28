@@ -1,6 +1,6 @@
 % Program to scan a file and assemble identifiers,
 % sequences of special characters, numbers and delimiters.
-:- module( erl, [run/1, run/2] ).
+ :- module( erl, [run/1, run/2] ).
 
 :- use_module( scan, [scan/2, reap_tokens/2] ).
 :- use_module(library(lists)).
@@ -8,11 +8,15 @@
     [quoted(true),numbervars(true),portrayed(true),
                                    max_depth(1000)]).
 
+%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%
 run(Result) :- run('examples/arithmetics.erl', Result).
 
+
+%%%% MAIN IO %%%%
 run(Path, TermList) :- 
     scan_whole_file(Path, Result),
     init(Result, TermList).
+
 
 init([_], []).
 init([X|Xs], [X|WithoutLast]) :- 
@@ -44,8 +48,8 @@ start_scan([List|OtherResults]) :-
 % is_attribute([alma,module,'(',simple,')','.']).
 parse_term(['-'|Rest], Node) :- attribute(['-'|Rest], Node).
 
-split_on(List, Element, Left, Right) :-
-    append(Left, [Element|Right], List).
+parse_term(Anything, '<???>'(error)). % TODO: this shold raise an error
+
 
 % attribute([-,module,'(',simple,')','.'], R).
 % attribute([-,export,'(','[',foo,/,1,']',')','.'], R).
@@ -153,4 +157,11 @@ eval_arith('<EXPR>'(L, O, R), Result) :-
     eval_arith(R, RRes),
     do_math(LRes, O, RRes, Result).
     
-    
+
+
+
+
+
+%%%%%%%%%%% UTils %%%%%%%%
+split_on(List, Element, Left, Right) :-
+    append(Left, [Element|Right], List).

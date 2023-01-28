@@ -26,8 +26,8 @@ jobs:
       - name: Check out reposiotry
         uses: actions/checkout@v3
         
-      - name: Check SwiPl version
-        run: docker run swipl 
+      - name: Prolog test
+        run: make docker test
         
       # Runs a single command using the runners shell
       - name: Run a one-line script

@@ -9,7 +9,7 @@ RESULT=$(swipl -l test/runner.pl -g "run_tests(_), halt.")
 
 echo "-----"
 echo $RESULT
-if [ "$RESULT" == "ALL TESTS PASSED" ]; then
+if [ "$RESULT" = "ALL TESTS PASSED" ]; then
   exit 0
 else
   exit 2

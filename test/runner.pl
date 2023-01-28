@@ -14,6 +14,7 @@ neg(Term) :- not(Term) -> true; (write('FAILED'), halt).
 
 run_tests(_) :-
     pass(erl:attribute([-,module,'(',simple,')','.'], '<MOD>'(simple))),
+    neg(erl:attribute([-,module,'(',simple,')','.'], '<MOD>'(simple_random))),
     %pass(erl:attribute([-,export,'(','[',foo,/,1,']',')','.'], <EXP>'(ExportList))),
     %neg(erl:attribute([-,cica,'(',simple,')','.'])),
     write('ALL TESTS PASSED').

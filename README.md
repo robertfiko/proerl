@@ -15,11 +15,16 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - The file should be an Erlang module, consisting of a sequence of attributes and function declarations, each terminated by period `.`. [See Erlang Module Syntax](https://www.erlang.org/doc/reference_manual/modules.html#module-syntax). **Limnitation:** only the following attributes are accepted, any other attributes will be raised as an error.
   - `-module(...)`
   - `-export([...])`
+  - Attributes can only be defined in one line
 - There should be an empty line at the end of the file
 - Functions with Guard (TODO:) expression cannot be evaluated at the time.
 - Only atoms that start with small charcters, can be accepted, so those that would be an atom without the `'` wrapping
 - No inline functions and lambdas
   - `fun(...) -> ... end` or `fun foo/n`
+- No dots (`.`) anywhere else besides marking the end of the function TODO: do they used anywhere else?
+  - So no floats
+- Function closing dot should be at the end of the last term of the function TODO: maybe it can be done better
+- Each term in fucntion should be in new line
 
 ## Possibilities
 - 

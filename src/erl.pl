@@ -3,7 +3,7 @@
  :- module( erl, [run/1, run/2] ).
 
 :- use_module( scan, [scan/2, reap_tokens/2] ).
-:- use_module(library(lists)).
+%:- use_module(library(lists), ).
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
                                    max_depth(1000)]).
@@ -13,14 +13,17 @@ run(Result) :- run('examples/arithmetics.erl', Result).
 
 
 %%%% MAIN IO %%%%
-run(Path, TermList) :- 
+run(Path, Final) :- 
     scan_whole_file(Path, Result),
-    init(Result, TermList).
+    init(Result, TermList),
+    parse_terms(TermList, NodeList),
+
+    Final = NodeList.
 
 
-init([_], []).
-init([X|Xs], [X|WithoutLast]) :- 
-    init(Xs, WithoutLast).
+%%%%% INTERNAL %%%%%%
+
+
 
 scan_whole_file(Path, Result) :-
     open(Path, read, Stream), 
@@ -42,17 +45,45 @@ start_scan([List|OtherResults]) :-
     
     
 % parsing terms: either ATTRIBUTE or FUNCTION
-% parse_term([-,module,'(',simple,')','.'], A).
+% parse_tl_term([-,module,'(',simple,')','.'], A).
 % attribute(['-',module,'(',simple,')','.'], A).
 % attribute([-,alma,'(',simple,')','.'], A).
 % is_attribute([alma,module,'(',simple,')','.']).
+
+
+parse_terms([],[]).
+
+% In case of attributes
+parse_terms([Term|TL], [Node|NL]) :-
+    attribute(Term, Node),
+    parse_terms(TL, NL).
+
+% In case of functions
+parse_terms([Term|TL], [Node|NL]) :-
+    function(Term, TL, Node, Rem)
+    parse_terms(Rem, NL).
+
+
+
+
+find_end_function([H|TermList], FunTermlist, Remaining, Collector) :-
+    %last(H, '.'),
+    Remaining = TermList,
+    FunTermlist = [H|Collector].
+
+find_end_function([H|TermList], FunTermlist, Remaining, Collector) :-
+    find_end_function(TermList, FunTermlist, Remaining, [H|Collector]).
+
+
+
 parse_term(['-'|Rest], Node) :- attribute(['-'|Rest], Node).
+parse_term(Term, Node) :- function(Term, Node). % TODO: NAGYON NAGYON DE NAGYON
+parse_term([], '<E>').
 
-parse_term(Anything, '<???>'(error)). % TODO: this shold raise an error
+parse_term(Node, '<???>'(Node)). % TODO: this shold raise an error
 
 
-% attribute([-,module,'(',simple,')','.'], R).
-% attribute([-,export,'(','[',foo,/,1,']',')','.'], R).
+%TODO: to_ prefix
 attribute([-,module,'(',ModuleName,')','.'], '<MOD>'(ModuleName)).
 attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
     split_on(Rest, '[', ['('], ExpList0), % left side of split_on is to ensure syntax
@@ -68,11 +99,27 @@ attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
 % split_on([foo,'(','_',')',->,ok,'.'], '->', FunHeader, FunBody).
 
 %split_on(MaybeFun, '->', FunHeader, FunBody),
-function(MaybeFun, '<FUN>'(FunName, Arglist, FunBody)) :-
-    split_on(MaybeFun, '->', FunHeader, FunBody),
+function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
+    split_on(MaybeFun, '->', FunHeader, FunBody0),
     split_on(FunHeader, '(', [FunName], Args),
     split_on(Args, ')', Arglist0, []),
-    exclude(=(','), Arglist0, Arglist). % TODO: explain this
+    exclude(=(','), Arglist0, Arglist), %TODO: explain this
+    take_until_funbody([FunBody0|TermList], fun_construct(FunBody1, Rem)),
+
+    FunBody = FunBody1.
+
+
+% take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']], [[szilva]]).
+% take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], A).
+
+%take_until_funbody([], [], []).
+
+take_until_funbody([H|T], fun_construct([H|Result], T)) :-
+    last('.', H), !.
+    %take_until_funbody(T, Result).
+
+take_until_funbody([H|T], [H|Result]) :-
+    take_until_funbody(T, Result).
 
 % Function Body Item
 % PASS will contain the leftover stuff 
@@ -110,16 +157,7 @@ is_expr('<EXPR>'(Left, Op, Right)) :-
     is_op(Op),
     is_operand(Right).
 
-% to_expr([5,'+',6], '<EXPR>'(5, '+', 6)).
-%to_expr([Left, Op, Right], Expr) :- 
-%    Expr = '<EXPR>'(Left, Op, Right),
-%    is_expr(Expr).
 
-
-
-% group_expression([5, '+', '(', 4, '-', 3, ')'], R).
-% group_expression([5, '+', '(', '(', 4, '-', 1, ')', '/', 2, ')'], R).
-% group_expression(['(', 5, '+', '(', 4, '-', 1, ')', ')', '/', 2], R).
 group_expression(Chars, Result) :-
     group_expression(Chars, Result, []).
 group_expression([H|Tail], Result, Collector) :-
@@ -158,10 +196,17 @@ eval_arith('<EXPR>'(L, O, R), Result) :-
     do_math(LRes, O, RRes, Result).
     
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    UTILS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-
-
-%%%%%%%%%%% UTils %%%%%%%%
 split_on(List, Element, Left, Right) :-
     append(Left, [Element|Right], List).
+
+init([_], []).
+init([X|Xs], [X|WithoutLast]) :- 
+    init(Xs, WithoutLast).
+
+last(X,[X]).
+last(X,[_|Z]) :- last(X,Z).

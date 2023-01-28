@@ -3,7 +3,7 @@
  :- module( erl, [run/1, run/2] ).
 
 :- use_module( scan, [scan/2, reap_tokens/2] ).
-%:- use_module(library(lists), ).
+:- use_module(library(lists), [exclude/3]).
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
                                    max_depth(1000)]).
@@ -60,8 +60,11 @@ parse_terms([Term|TL], [Node|NL]) :-
 
 % In case of functions
 parse_terms([Term|TL], [Node|NL]) :-
-    function(Term, TL, Node, Rem)
+    function(Term, TL, Node, Rem),
     parse_terms(Rem, NL).
+
+parse_terms([Term|TL], ['<???>'(Term)|NL]) :-
+    parse_terms(TL, NL).
 
 
 

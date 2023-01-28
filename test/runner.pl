@@ -1,7 +1,7 @@
 :- module( runner, [run_tests/1] ).
 :- use_module( '../src/erl', [] ).
 
-:- import(erl:attribute/1).
+%:- import(erl:attribute/1).
 
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),

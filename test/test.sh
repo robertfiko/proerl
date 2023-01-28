@@ -12,5 +12,5 @@ echo $RESULT
 if [ "$RESULT" == "ALL TESTS PASSED" ]; then
   exit 0
 else
-  exit 1
+  exit 2
 fi

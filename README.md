@@ -9,6 +9,7 @@
 - [ ] only simple arithmetic expressions
 - [ ] Testing in SWIpl, Sicstus
 - [ ] Multiple statements in one line
+- [ ] exclude, utils és reverse használat
 
 ## Limitations
 

@@ -7,6 +7,8 @@
 - [ ] No chars
 - [ ] YES comments
 - [ ] only simple arithmetic expressions
+- [ ] Testing in SWIpl, Sicstus
+- [ ] Multiple statements in one line
 
 ## Limitations
 
@@ -24,7 +26,7 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - No dots (`.`) anywhere else besides marking the end of the function TODO: do they used anywhere else?
   - So no floats
 - Function closing dot should be at the end of the last term of the function TODO: maybe it can be done better
-- Each term in fucntion should be in new line
+- Each term in fucntion should be in new line TODO: can we do better?
 
 ## Possibilities
 - 

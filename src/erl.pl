@@ -25,6 +25,7 @@ run(Path, Final) :-
     init(Result, TermList0),
     exclude(=([]), TermList0, TermList),
     parse_terms(TermList, NodeList),
+    
 
     Final = NodeList.
 
@@ -87,7 +88,8 @@ function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
     split_on(Args, ')', Arglist0, []),
     exclude(=(','), Arglist0, Arglist), % filters element where goal failed
     take_until_funbody([FunBody0|TermList], FunBody1, Rem),
-    exclude(=([]), FunBody1, FunBody).
+    exclude(=([]), FunBody1, FunBody2),
+    function_body(FunBody2, FunBody).
 
 
 take_until_funbody(Terms, Funbody, Rem) :-
@@ -127,6 +129,31 @@ format_export_list([Fun,/,Arity], ['<FUNREF>'(Fun, Arity)]).
 
 %fbi(Expr, '<EXPR>'(Left, Operator, Right)) :-
 
+function_body([],[]).
+function_body([Term|FBody], [Node|Nodes]) :-
+    fbody_item(Term, Node),
+    function_body(FBody, Nodes).
+
+% TODO: LEXICAL, SYNTACTICAL, SEMANTICAL LAYERS are not so well defined
+
+% In Function body:
+% TODO: Function call, 
+% Artih Expression, 
+% TODO: atoms, 
+% TODO: variables
+% TODO: variable wrapped funciton call
+fbody_item(Term, Node) :-
+    init(Term, SmallTerm), % TODO: emiatt fixen nem lehet soronként több statementet írni
+    to_expression(SmallTerm, Node).
+
+% function call
+fbody_item(Term, Node) :-
+    init(Term, SmallTerm), % TODO: emiatt fixen nem lehet soronként több statementet írni
+    to_function_call(SmallTerm, Node).
+
+
+fbody_item(Term, '<???>'(Term)). % TODO: should raise error
+
 
 is_atom(Term) :- 
     atom(Term), 
@@ -149,23 +176,31 @@ is_expr('<EXPR>'(Left, Op, Right)) :-
     is_op(Op),
     is_operand(Right).
 
-
-group_expression(Chars, Result) :-
-    group_expression(Chars, Result, []).
-group_expression([H|Tail], Result, Collector) :-
+% TEST erl:to_expression([683,*,2], Node).
+to_expression(Chars, Result) :-
+    to_expression(Chars, Result, []).
+to_expression([H|Tail], Result, Collector) :-
     ( H = '(' ->
-        group_expression(Tail, Result, Collector)
+        to_expression(Tail, Result, Collector)
     ; H = ')' ->
         [A,B,C|Rest] = Collector,
         Term = '<EXPR>'(C, B, A),
-        group_expression(Tail, Result, [Term|Rest])
-    ; group_expression(Tail, Result, [H|Collector])
+        to_expression(Tail, Result, [Term|Rest])
+    ; to_expression(Tail, Result, [H|Collector])
     ).
 
-group_expression([], Result, Collector) :-
+to_expression([], Result, Collector) :-
     [A,B,C] = Collector,
     Result = '<EXPR>'(C, B, A).
 
+
+% [foo,'(',whatever,')']
+% []
+to_function_call([FunName|Term], '<FUNCALL>'(FunName, Arity, Args)) :-
+    split_on(Term, '(', _, PartialArglist), % TODO: ensure syntax
+    split_on(PartialArglist, ')', _, RawArglist), % TODO: ensure syntax
+    Arity = -1,
+    Args = RawArglist.
 
 
 
@@ -196,3 +231,122 @@ init([X|Xs], [X|WithoutLast]) :-
 
 last(X,[X]).
 last(X,[_|Z]) :- last(X,Z).
+
+
+
+% TODO: after module construction and simple evaluation is done split to modules
+% TODO: scan.pl-t visszaállítani kié??
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+tcm(A) :-
+    Nodes = ['<MOD>'(arithmetics_onemain),'<EXPORT>'(['<FUNREF>'(main,0)]),'<FUN>'(main,[],['<EXPR>'(16,+,43)])],
+    construct_module(Nodes, A).
+
+%'$MODULE'(ModuleDefinition, Exportlist, Funs)
+construct_module(Nodes, Module) :-
+    construct_module(Nodes, '!none', '!none', [], '!MOD'(Mod, Exp, Funs)),
+
+    % checks
+    Mod = '$MOD'(ModDef), atom(ModDef),
+
+    '$EXPORT'(ExportList) = Exp, 
+    ['<FUNREF>'(_,_)|_] = ExportList,
+
+    ['<FUN>'(_, _, _)|_] = Funs,
+
+    Module = '$MODULE'(Mod, Exp, Funs).
+
+construct_module([], Mod, Exp, Funs, '!MOD'(Mod, Exp, Funs)).  % TODO: doc: ! needs attention <> lexical/syn node $ smenatic another node
+construct_module([Node|Nodes], ModDef, Exportlist, Funs, MOD) :-
+    write('\n---\n'), write([Node|Nodes]), %write('\n'), write(ModDef), write('\n'), write(ExportList), write('\n'), write(Funs), write('\n'),
+    (
+        '<MOD>'(_) = Node -> 
+            write('<<<M>>>'),
+            declare_module(ModDef, Node, NewModDef),
+            construct_module(Nodes, NewModDef, Exportlist, Funs, MOD);
+        '<EXPORT>'(ExpList) = Node ->
+            write('<<<E>>>'),
+            declare_explist(ExpList, Node, NewExportList),
+            construct_module(Nodes, ModDef, NewExportList, Funs, MOD);
+        '<FUN>'(_, _, _) = Node ->
+            write('<<<F>>>'),
+            construct_module(Nodes, ModDef, Exportlist, [Node|Funs], MOD);
+        write('\nERROR: Unrecognised node type'), write(Node), write('\n') % todo: universal halting
+        %construct_module(Nodes, NewModDef, Exportlist, Funs, MOD);
+    ).
+
+declare_module(OldDef, Def, NewDef) :-
+    (   
+        % module is not defined already
+        '!none' = OldDef,
+        '<MOD>'(ModName) = Def ->
+            NewDef = '$MOD'(ModName);
+
+        % module is already defined
+        '<$MOD>'(ModName) = OldDef ->
+            NewDef = OldDef,
+            write('\nERROR: Module already defined'); % todo: universal halting
+        
+        % not a module definition
+        '!none' = OldDef ->
+        % if 'Def' would have a correct syntax, an earlier clause would have run
+            NewDef = OldDef,
+            write('\nERROR: Not a module definition'); % todo: universal halting
+        
+        % default
+        write('ERROR: while module def, unknow.') % todo: universal halting
+    
+    ).
+
+%declare_module('!none', '<MOD>'(ModName), '<MOD>'(ModDef)) :- ModDef = ModName, write('\nMODDEF.').
+%declare_module(M, '<MOD>'(ModName), M) :- write('\nERROR: Module already defined'), write(M), write(ModName). % todo: universal halting
+%declare_module(M, _, M) :- write('\nERROR: Not a module definition'). % todo: universal halting
+
+
+declare_explist(OldDef, Def, NewDef) :-
+    (   
+        % module is not defined already
+        '!none' = OldDef,
+        '<EXPORT>'(ExpList) = Def ->
+            NewDef = '$EXPORT'(ExpList);
+
+        % module is already defined
+        '$EXPORT'(ExpList) = OldDef ->
+            NewDef = OldDef,
+            write('\nERROR: Explist is already defined'); % todo: universal halting
+        
+        % not a module definition
+        '!none' = OldDef ->
+        % if 'Def' would have a correct syntax, an earlier clause would have run
+            NewDef = OldDef,
+            write('\nERROR: Not a explist definition'); % todo: universal halting
+        
+        % default
+        write('ERROR: while module def, unknow.') % todo: universal halting
+    
+    ).
+
+%declare_explist('!none', '<EXPORT>'(ExpList), ExpList) :- write('\n EXPLDEF.').
+%declare_explist(E, '<EXPORT>'(E), E) :- write('\nERROR: Export list already defined'). % todo: universal halting
+%declare_explist(E, X, E) :- write('\nERROR: Not an export list definition'), write(X), write(E). % todo: universal halting
+
+
+% erl:tcm(A).
+
+%TODO: tests for errors
+% TODO: test for multiple functions in module
+% TODO: clean this section
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

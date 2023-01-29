@@ -4,14 +4,15 @@
 For some simple explanation on theoritical sections please check [THEORITICAL.md](THEORITICAL.md)
 ## TODO:
 - [ ] Error handling
-- [ ] No strings
 - [ ] No chars
-- [ ] YES comments
-- [ ] only simple arithmetic expressions
-- [ ] Testing in SWIpl, Sicstus
 - [ ] Multiple statements in one line
 - [ ] scan.pl check 
+- [ ] list operations
 
+## Prerequisites
+- Sicstus 4.7.1
+- Docker
+- GNU Make
 
 ## Limitations
 
@@ -22,22 +23,46 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
   - `-export([...])`
   - Attributes can only be defined in one line
 - There should be an empty line at the end of the file
-- Functions with Guard (TODO:) expression cannot be evaluated at the time.
+- Functions with [Guard](https://www.erlang.org/doc/reference_manual/expressions.html#guard-sequences) expression cannot be evaluated at the time.
 - Only atoms that start with small charcters, can be accepted, so those that would be an atom without the `'` wrapping
 - No inline functions and lambdas
   - `fun(...) -> ... end` or `fun foo/n`
-- No dots (`.`) anywhere else besides marking the end of the function TODO: do they used anywhere else?
+- No dots (`.`) anywhere else besides marking the end of the function and attributes.
   - So no floats
-- Function closing dot should be at the end of the last term of the function TODO: maybe it can be done better
-- Each term in fucntion should be in new line TODO: can we do better?
+- Function closing dot should be at the end of the last term of the function 
+- Each term in fucntion should be in new line
+- Strings are not allowed 
 
 ## Possibilities
+- Skipping comments
 
 
+## Opportunities for further development
+- Cross-module function calls
+- Complete testing on SWI Prolog and/or Sicstus image (legal issues)
+- Intorduceing basic logic expressions (`and`, `or`) in function body.
+- Right now, each term/statement should be in new line; it should allow to have multiple ones in one line
+- Allow that function closing dot to be in a new line
+
+
+## Testing 
+Due to differences in SWI and Sicstus Prolog, testing has two sets. Smaller
+unit-like tests can be run in SWI prolog, but complex integration-like and 
+system-wide tests can only be run in Sicstus, as the projects supports only
+Sicstus Prolog.
+
+Since SWI offers Docker image, the CI testing is based on that, but due to the above
+mentioned reasons, and the fact that Sicstus is closed-source that is not complete.
+
+If you have Sicstus installed locally, you can run a wider set of tests using:
+`make local`
+
+To create the SWI based testing image, run: `make docker` 
+To run the tests inside the SWI based image, run: `make test`
 
 ## How to section
 
-
+A few how-tos or thinking written down.
 
 ### How to parse function body
 
@@ -46,9 +71,12 @@ A function body is list of terms (Erlang terms) separated by comas (`,`). Let's 
   - can be a simple atom
   - or a function call
 - variable
-- literals
+- other literals
   - charcter
   - number
 - basic arithmethic expressions (`+`, `-`, `/`, `*`)
-  - will trested as syntactic sugars
-- basic logic expressions (`and`, `or`)
+
+### Skipping comments
+
+Comments can occour either on top-level (in the level of function definitions and attributes)
+or in function bodies. Comments are just skipped in syntactical layer.

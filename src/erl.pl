@@ -9,6 +9,8 @@
                                    max_depth(1000)]).
 
 
+% TODO: module doc
+% TODO: attribute doc
 
 
 %%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
@@ -28,28 +30,27 @@ run(Path, Final) :-
 
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %   INTERNAL Functions 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+% Scan the whole file until EOF
 scan_whole_file(Path, Result) :-
     open(Path, read, Stream), 
     set_input(Stream),
     start_scan(Result),
     close(Stream).
-    %init(RawResult, Result).
+    %init(RawResult, Result). %TODO: probably to get rid of last []
 
-
+% Initation scanning with error handling
 start_scan([List|OtherResults]) :- 
     catch(
         (   get_code(C1), 
             reap_tokens(C1,List),
             start_scan(OtherResults)
         ),
-        Error,
-        (print_message(error, Error), OtherResults = [])
+        _Error, % error is not raised to the user, as it is handled
+        (OtherResults = [])
     ).
     
     
@@ -58,7 +59,7 @@ parse_terms([],[]).
 
 % In case of attributes
 parse_terms([Term|TL], [Node|NL]) :-
-    attribute(Term, Node),
+    to_attribute(Term, Node),
     parse_terms(TL, NL).
 
 % In case of functions
@@ -66,67 +67,32 @@ parse_terms([Term|TL], [Node|NL]) :-
     function(Term, TL, Node, Rem),
     parse_terms(Rem, NL).
 
-parse_terms([Term|TL], ['<???>'(Term)|NL]) :-
+% In case of unrecognised terms
+parse_terms([Term|TL], ['<???>'(Term)|NL]) :- % TODO: this shold raise an error
     parse_terms(TL, NL).
 
 
-
-
-find_end_function([H|TermList], FunTermlist, Remaining, Collector) :-
-    %last(H, '.'),
-    Remaining = TermList,
-    FunTermlist = [H|Collector].
-
-find_end_function([H|TermList], FunTermlist, Remaining, Collector) :-
-    find_end_function(TermList, FunTermlist, Remaining, [H|Collector]).
-
-
-
-parse_term(['-'|Rest], Node) :- attribute(['-'|Rest], Node).
-parse_term(Term, Node) :- function(Term, Node). % TODO: NAGYON NAGYON DE NAGYON
-parse_term([], '<E>').
-
-parse_term(Node, '<???>'(Node)). % TODO: this shold raise an error
-
-
-%TODO: to_ prefix
-attribute([-,module,'(',ModuleName,')','.'], '<MOD>'(ModuleName)).
-attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
+% Turn raw termlist to Attribute NODE
+to_attribute([-,module,'(',ModuleName,')','.'], '<MOD>'(ModuleName)).
+to_attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
     split_on(Rest, '[', ['('], ExpList0), % left side of split_on is to ensure syntax
     split_on(ExpList0, ']', ExportList, [')','.']). % right side of split_on is to ensure syntax
     %exclude(=(','), Arglist0, Arglist). % TODO: explain this
+    % TODO: export list
 
-% [[-,module,'(',simple,')','.'],[-,export,'(','[',foo,/,1,']',')','.'],[],[foo,'(','_',')',->,ok,'.']]
-% [foo,'(','_',')',->,ok,'.']
-% function([foo,'(','_',')',->,ok,'.'], Term).
 
-% function([bar,'(','Apple',',','Pear',')',->,london,',',foo,'(','Pear',')','.'], Term).
-
-% split_on([foo,'(','_',')',->,ok,'.'], '->', FunHeader, FunBody).
-
-%split_on(MaybeFun, '->', FunHeader, FunBody),
-% TEST erl:take_until_funbody([[],[5,+,4,,],[683,*,2,.],[main,(,),->],[foo,(,whatever,),.]], R).
+% Turn raw termlist to Function NODE
 function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
-    %write(TermList),
     split_on(MaybeFun, '->', FunHeader, FunBody0),
     split_on(FunHeader, '(', [FunName], Args),
-    write(FunHeader), write('\n'),
     split_on(Args, ')', Arglist0, []),
     exclude(=(','), Arglist0, Arglist), %TODO: explain this
-    write(Arglist), write('\n'), write([FunBody0|TermList]), write('\n'), write('\n'),
-    take_until_funbody([FunBody0|TermList], FunBody, Rem),
-    write(Arglist), write('\n'),write('\n'),
-
-    write('----OK----'),
-    %write(fun_construct(FunBody1, Rem)),
+    take_until_funbody([FunBody0|TermList], FunBody1, Rem),
 
     FunBody = FunBody1.
+    % TODO: get rid of empty lists in function body
 
-% TODO: get rid of empty lists in function body
 
-
-% TEST erl:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']], [[szilva]]).
-% TEST erl:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [bar, '(', ')', ->], [ok, '.']], [[korte,','],[5,+,6,'.']], [[bar, '(', ')', ->], [ok, '.']]).
 
 take_until_funbody(Terms, Funbody, Rem) :-
     take_until_funbody(Terms, [], Funbody, Rem).
@@ -201,18 +167,12 @@ group_expression([], Result, Collector) :-
 
 
 
-
-
 %%%%%%% EVAL %%%%%%
-
-
 do_math(L, '+', R, Result) :- Result is L+R.
 do_math(L, '-', R, Result) :- Result is L-R.
 do_math(L, '/', R, Result) :- Result is L/R.
 do_math(L, '*', R, Result) :- Result is L*R.
 
-% eval_arith('<EXPR>'(5,+,'<EXPR>'('<EXPR>'(4,-,1),/,2)), R).
-% eval_arith('<EXPR>'('<EXPR>'(5,+,'<EXPR>'(4,-,1)),/,2), R).
 eval_arith(N, N) :- number(N).
 eval_arith('<EXPR>'(L, O, R), Result) :-
     eval_arith(L, LRes),

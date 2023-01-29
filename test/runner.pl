@@ -9,18 +9,30 @@
 
 not(P) :- (P -> fail;true).
 
-pass(Term) :- Term -> true;(write('FAILED'), halt).
+pass(Term) :- 
+    Term -> 
+        true
+    ;
+        (
+            write('FAILED: '),
+            write(Term),
+            write('\n'),
+            halt
+        ).
+
 neg(Term) :- not(Term) -> true; (write('FAILED'), halt).
 
 run_tests(_) :-
     % ATTRIBUTE
-    pass(erl:attribute([-,module,'(',simple,')','.'], '<MOD>'(simple))),
-    neg(erl:attribute([-,module,'(',simple,')','.'], '<MOD>'(simple_random))),
-    pass(erl:attribute([-,export,'(','[',foo,/,1,']',')','.'], '<EXPORT>'([foo,/,1]))),
-    neg(erl:attribute([-,cica,'(',simple,')','.'], _)),
+    pass(erl:to_attribute([-,module,'(',simple,')','.'], '<MOD>'(simple))),
+    neg(erl:to_attribute([-,module,'(',simple,')','.'], '<MOD>'(simple_random))),
+    pass(erl:to_attribute([-,export,'(','[',foo,/,1,']',')','.'], '<EXPORT>'([foo,/,1]))),
+    neg(erl:to_attribute([-,cica,'(',simple,')','.'], _)), % not an attribute syntax
 
     % FUNCTION
-    pass(erl:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']])),
+    pass(erl:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']], [[szilva]])),
+    pass(erl:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [bar, '(', ')', ->], [ok, '.']], [[korte,','],[5,+,6,'.']], [[bar, '(', ')', ->], [ok, '.']])),
+
 
 
     % ARITHMETICS
@@ -28,7 +40,8 @@ run_tests(_) :-
     pass(erl:group_expression([5, '+', '(', '(', 4, '-', 1, ')', '/', 2, ')'], '<EXPR>'(5,+,'<EXPR>'('<EXPR>'(4,-,1),/,2)))),
     pass(erl:group_expression(['(', 5, '+', '(', 4, '-', 1, ')', ')', '/', 2], '<EXPR>'('<EXPR>'(5,+,'<EXPR>'(4,-,1)),/,2))),
 
-
+    pass(erl:eval_arith('<EXPR>'(5,+,'<EXPR>'('<EXPR>'(4,-,1),/,2)), 6.5)),
+    pass(erl:eval_arith('<EXPR>'('<EXPR>'(5,+,'<EXPR>'(4,-,1)),/,2), 4 )),
 
 
 

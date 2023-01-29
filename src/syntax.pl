@@ -1,16 +1,14 @@
-% The syntax checkers and term parsers for ProErl
-%                                        – Simple Erlang Interpreter in Prolog
+% The syntax checkers and term parsers for 
+% ProErl – Simple Erlang Interpreter in Prolog                               
 
 :- module( syntax, [parse_terms/2, is_expr/1, is_function/1] ).
 
 :- use_module( utils, [raise/1, split_on/4, init/2] ).
-
 :- use_module(library(lists), [last/2, exclude/3, reverse/2]).
 
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
                                    max_depth(1000)]).
-
 
 
 
@@ -28,15 +26,14 @@ parse_terms([Term|TL], [Node|NL]) :-
     parse_terms(Rem, NL).
 
 % In case of unrecognised terms
-parse_terms([Term|_TL], ['<???>'(Term)|_NL]) :- % TODO: TL NL singleton volt
+parse_terms([Term|_TL], ['<???>'(Term)|_NL]) :-
     write('Unknow term: '), write(Term),
     raise('ERROR Unknow term').
-    %parse_terms(TL, NL).
 
 
 % Turn raw termlist to Attribute NODE
 to_attribute([-,module,'(',ModuleName,')','.'], '<MOD>'(ModuleName)).
-to_attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
+to_attribute([-,export|Rest], '<EXPORT>'(ExportList)) :-
     split_on(Rest, '[', ['('], ExpList0), % left side of split_on is to ensure syntax
     split_on(ExpList0, ']', ExpList1, [')','.']), % right side of split_on is to ensure syntax
     format_export_list(ExpList1, ExportList).
@@ -75,27 +72,18 @@ format_export_list([Fun,/,Arity], ['<FUNREF>'(Fun, Arity)]).
 
 
 % TODO: FUN with arity
-
-% Function Body Item
-% PASS will contain the leftover stuff 
-%fbi([Id,'('|Rest], '<FUNCALL>'(Id, Params), PASS) :-
-%    split_on(Rest, '(', Params0, Rem),
-%    exclude(=(','), Params0, Params1),
-%    split_on(Rem, ')', [], [','| PASS]).
 % TODO: need to check for following comma and whether we can move on or not
 % TODO: type of params
 % TODO: type of fun Id
 % TODO: finish function call
 % TODO: cross-module function call
 
-%fbi(Expr, '<EXPR>'(Left, Operator, Right)) :-
 
 function_body([],[]).
 function_body([Term|FBody], [Node|Nodes]) :-
     fbody_item(Term, Node),
     function_body(FBody, Nodes).
 
-% TODO: LEXICAL, SYNTACTICAL, SEMANTICAL LAYERS are not so well defined
 
 % In Function body:
 % TODO: Function call, 

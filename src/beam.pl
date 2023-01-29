@@ -4,13 +4,9 @@
 :- module( beam, [eval/2] ).
 :- use_module( syntax, [is_expr/1, is_function/1] ).
 
-
-
-
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
                                    max_depth(1000)]).
-
 
 
 

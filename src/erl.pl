@@ -17,7 +17,7 @@
 :- use_module(library(lists), [exclude/3, reverse/2]).
 
 
-% TODO: attribute doc
+
 
 
 %%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
@@ -66,5 +66,4 @@ start_scan([List|OtherResults]) :-
     ).
 
 
-% TODO: after module construction and simple evaluation is done split to modules
 % TODO: scan.pl-t visszaállítani kié??

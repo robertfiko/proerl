@@ -1,3 +1,9 @@
+% This module contains semantic transformers and checkers for
+% ProErl – Simple Erlang Interpreter in Prolog
+% 
+% At this point the syntactical nodes are present, so we can start the 
+% semantical analysis
+
 :- module( semantics, [construct_module/2] ).
 
 :- use_module( utils, [raise/1, split_on/4, init/2] ).
@@ -6,26 +12,7 @@
     [quoted(true),numbervars(true),portrayed(true),
                                    max_depth(1000)]).
 
-%
-% 
-% 
-% 
-% ez már  szemantikus része, mivel itt már a szintaktikus egységek rendelkezésre állnak, és itt egy szemantikailag
-% is értelmes kódot kapunk
-% 
-% 
-% 
 
-
-
-
-
-
-%tcm(A) :-
-%    Nodes = ['<MOD>'(arithmetics_onemain),'<EXPORT>'(['<FUNREF>'(main,0)]),'<FUN>'(main,[],['<EXPR>'(16,+,43)])],
-%    construct_module(Nodes, A).
-
-%'$MODULE'(ModuleDefinition, Exportlist, Funs)
 construct_module(Nodes, Module) :-
     construct_module(Nodes, '!none', '!none', [], '!MOD'(Mod, Exp, Funs)),
 
@@ -39,14 +26,14 @@ construct_module(Nodes, Module) :-
 
     Module = '$MODULE'(Mod, Exp, Funs).
 
-construct_module([], Mod, Exp, Funs, '!MOD'(Mod, Exp, Funs)).  % TODO: doc: ! needs attention <> lexical/syn node $ smenatic another node
-construct_module([Node|Nodes], ModDef, Exportlist, Funs, MOD) :- % TODO: azt mondja Export
+construct_module([], Mod, Exp, Funs, '!MOD'(Mod, Exp, Funs)).
+construct_module([Node|Nodes], ModDef, Exportlist, Funs, MOD) :-
     (
         '<MOD>'(_) = Node -> 
             declare_module(ModDef, Node, NewModDef),
             construct_module(Nodes, NewModDef, '!none', Funs, MOD);
         '<EXPORT>'(_) = Node ->
-            declare_explist(Exportlist, Node, NewExportList), % TODO Export_L_ist volt nagy L-el. így is jó?
+            declare_explist(Exportlist, Node, NewExportList),
             construct_module(Nodes, ModDef, NewExportList, Funs, MOD); 
         '<FUN>'(_, _, _) = Node ->
             construct_module(Nodes, ModDef, Exportlist, [Node|Funs], MOD);
@@ -77,9 +64,6 @@ declare_module(OldDef, Def, NewDef) :-
     
     ).
 
-%declare_module('!none', '<MOD>'(ModName), '<MOD>'(ModDef)) :- ModDef = ModName, write('\nMODDEF.').
-%declare_module(M, '<MOD>'(ModName), M) :- write('\nERROR: Module already defined'), write(M), write(ModName). % todo: universal halting
-%declare_module(M, _, M) :- write('\nERROR: Not a module definition'). % todo: universal halting
 
 
 declare_explist(OldDef, Def, NewDef) :-
@@ -106,12 +90,7 @@ declare_explist(OldDef, Def, NewDef) :-
     
     ).
 
-%declare_explist('!none', '<EXPORT>'(ExpList), ExpList) :- write('\n EXPLDEF.').
-%declare_explist(E, '<EXPORT>'(E), E) :- write('\nERROR: Export list already defined'). % todo: universal halting
-%declare_explist(E, X, E) :- write('\nERROR: Not an export list definition'), write(X), write(E). % todo: universal halting
 
-
-% erl:tcm(A).
 
 %TODO: tests for errors
 % TODO: test for multiple functions in module

@@ -76,9 +76,8 @@ parse_terms([Term|TL], ['<???>'(Term)|NL]) :- % TODO: this shold raise an error
 to_attribute([-,module,'(',ModuleName,')','.'], '<MOD>'(ModuleName)).
 to_attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
     split_on(Rest, '[', ['('], ExpList0), % left side of split_on is to ensure syntax
-    split_on(ExpList0, ']', ExportList, [')','.']). % right side of split_on is to ensure syntax
-    %exclude(=(','), Arglist0, Arglist). % TODO: explain this
-    % TODO: export list
+    split_on(ExpList0, ']', ExpList1, [')','.']), % right side of split_on is to ensure syntax
+    format_export_list(ExpList1, ExportList).
 
 
 % Turn raw termlist to Function NODE
@@ -86,12 +85,9 @@ function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
     split_on(MaybeFun, '->', FunHeader, FunBody0),
     split_on(FunHeader, '(', [FunName], Args),
     split_on(Args, ')', Arglist0, []),
-    exclude(=(','), Arglist0, Arglist), %TODO: explain this
+    exclude(=(','), Arglist0, Arglist), % filters element where goal failed
     take_until_funbody([FunBody0|TermList], FunBody1, Rem),
-
-    FunBody = FunBody1.
-    % TODO: get rid of empty lists in function body
-
+    exclude(=([]), FunBody1, FunBody).
 
 
 take_until_funbody(Terms, Funbody, Rem) :-
@@ -109,7 +105,13 @@ take_until_funbody([H|T], Acc, Funbody, Rem) :-
     ).
 
 
+format_export_list([], []).
+format_export_list([Fun,/,Arity,','|Rest], ['<FUNREF>'(Fun, Arity)|FunRefRest]) :-
+    format_export_list(Rest, FunRefRest).
+format_export_list([Fun,/,Arity], ['<FUNREF>'(Fun, Arity)]).
 
+
+% TODO: FUN with arity
 
 % Function Body Item
 % PASS will contain the leftover stuff 

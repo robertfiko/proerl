@@ -1,6 +1,7 @@
 #  ProErl
 **Simple Erlang Interpreter written in Prolog**
 
+For some simple explanation on theoritical sections please check [THEORITICAL.md](THEORITICAL.md)
 ## TODO:
 - [ ] Error handling
 - [ ] No strings
@@ -9,7 +10,8 @@
 - [ ] only simple arithmetic expressions
 - [ ] Testing in SWIpl, Sicstus
 - [ ] Multiple statements in one line
-- [ ] exclude, utils és reverse használat
+- [ ] scan.pl check 
+
 
 ## Limitations
 
@@ -30,9 +32,12 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - Each term in fucntion should be in new line TODO: can we do better?
 
 ## Possibilities
-- 
+
+
 
 ## How to section
+
+
 
 ### How to parse function body
 

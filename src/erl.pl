@@ -6,9 +6,9 @@
 
 :- use_module( scan, [scan/2, reap_tokens/2] ).
 :- use_module( syntax, [parse_terms/2] ).
-:- use_module( semantics, [construct_module/2] ).
+:- use_module( semantics, [construct_module/2, find_main/2] ).
 :- use_module( beam, [eval/2] ).
-:- use_module( utils, [init/2, find_main/2] ).
+:- use_module( utils, [init/2] ).
 
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
@@ -21,7 +21,7 @@
 
 
 %%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
-run(Result) :- run('examples/arithmetics_onemain.erl', Result).
+run(Result) :- run('examples/atoms.erl', Result).
 %%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -35,8 +35,8 @@ run(Path, Final) :-
     construct_module(NodeList, Module),
 
     '$MODULE'(_, _, FunList) = Module,
-    find_main(FunList, Main), % TODO: move to semantics unit
-    write('Main found, running it!\n'), % TODO: what if not?
+    find_main(FunList, Main),
+    write('Main found, running it!\n'), 
     eval(Main, Value),
 
     Final = Value.

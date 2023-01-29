@@ -3,7 +3,7 @@
 
 :- module( syntax, [parse_terms/2, is_expr/1, is_function/1] ).
 
-:- use_module( utils, [raise/1, split_on/4, init/2] ).
+:- use_module( utils, [split_on/4, init/2] ).
 :- use_module(library(lists), [last/2, exclude/3, reverse/2]).
 
 :- set_prolog_flag(toplevel_print_options,
@@ -25,10 +25,16 @@ parse_terms([Term|TL], [Node|NL]) :-
     function(Term, TL, Node, Rem),
     parse_terms(Rem, NL).
 
+% In case of comments – JUST SKIPPED
+parse_terms([Term|TL], NL) :-
+    ['%'|_] = Term,
+    parse_terms(TL, NL).
+
+
 % In case of unrecognised terms
 parse_terms([Term|_TL], ['<???>'(Term)|_NL]) :-
     write('Unknow term: '), write(Term),
-    raise('ERROR Unknow term').
+    write('ERROR Unknow term'), fail.
 
 
 % Turn raw termlist to Attribute NODE
@@ -43,6 +49,7 @@ to_attribute([-,export|Rest], '<EXPORT>'(ExportList)) :-
 function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
     split_on(MaybeFun, '->', FunHeader, FunBody0),
     split_on(FunHeader, '(', [FunName], Args),
+    is_atom(FunName),
     split_on(Args, ')', Arglist0, []),
     exclude(=(','), Arglist0, Arglist), % filters element where goal failed
     take_until_funbody([FunBody0|TermList], FunBody1, Rem),
@@ -71,12 +78,11 @@ format_export_list([Fun,/,Arity,','|Rest], ['<FUNREF>'(Fun, Arity)|FunRefRest]) 
 format_export_list([Fun,/,Arity], ['<FUNREF>'(Fun, Arity)]).
 
 
-% TODO: FUN with arity
 % TODO: need to check for following comma and whether we can move on or not
 % TODO: type of params
 % TODO: type of fun Id
 % TODO: finish function call
-% TODO: cross-module function call
+
 
 
 function_body([],[]).
@@ -85,31 +91,49 @@ function_body([Term|FBody], [Node|Nodes]) :-
     function_body(FBody, Nodes).
 
 
-% In Function body:
+% In Function body: Artih Expression | Atoms |
 % TODO: Function call, 
-% Artih Expression, 
-% TODO: atoms, 
 % TODO: variables
-% TODO: variable wrapped funciton call
-fbody_item(Term, Node) :-
-    init(Term, SmallTerm), % TODO: emiatt fixen nem lehet soronként több statementet írni
-    to_expression(SmallTerm, Node).
+% TODO: variable bindings
 
-% function call
+% For Arithmetic Expressions
 fbody_item(Term, Node) :-
-    init(Term, SmallTerm), % TODO: emiatt fixen nem lehet soronként több statementet írni
+    init(Term, SmallTerm), % this probably can an obstacle to multi-statement lines
+    to_expression(SmallTerm, Node),
+    is_expr(Node).
+
+% For Function Calls
+fbody_item(Term, Node) :-
+    init(Term, SmallTerm), % this probably can an obstacle to multi-statement lines
     to_function_call(SmallTerm, Node).
 
+fbody_item(Term, Node) :-
+    init(Term, [Atom]),
+    is_atom(Atom),
+    Node = '<ATOM>'(Atom).
 
-fbody_item(Term, '<???>'(Term)). % TODO: should raise error
+% FALLBACK ~ DEFAULT
+fbody_item(Term, '<???>'(Term)) :-
+    write('Unknow function body term: '), write(Term), write('\n'), fail.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CHECKERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 is_function('<FUN>'(_, _, _)).
 
+% syntax:starts_with_lowercase('Atom').
+% 
+starts_with_lowercase(Atom) :-
+    atom_chars(Atom, [FirstChar|_]),
+    char_code(FirstChar, Code),
+    Code >= 97,
+    Code =< 122.
 
 is_atom(Term) :- 
     atom(Term), 
-    atom_chars(Term, [A|_]),
-    char_type(A, lower).
+    starts_with_lowercase(Term).
+
 
 is_var_name(['_',A|_]) :- char_type(A, upper).
 is_var_name([A|_]) :- char_type(A, upper).
@@ -127,7 +151,9 @@ is_expr('<EXPR>'(Left, Op, Right)) :-
     is_op(Op),
     is_operand(Right).
 
-% TEST erl:to_expression([683,*,2], Node).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONVERTERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 to_expression(Chars, Result) :-
     to_expression(Chars, Result, []).
 to_expression([H|Tail], Result, Collector) :-
@@ -145,12 +171,13 @@ to_expression([], Result, Collector) :-
     Result = '<EXPR>'(C, B, A).
 
 
-% [foo,'(',whatever,')']
-% []
+
 to_function_call([FunName|Term], '<FUNCALL>'(FunName, Arity, Args)) :-
-    split_on(Term, '(', _, PartialArglist), % TODO: ensure syntax
-    split_on(PartialArglist, ')', _, RawArglist), % TODO: ensure syntax
-    Arity = -1,
+    is_atom(FunName),
+    split_on(Term, '(', A, PartialArglist), % TODO: ensure syntax
+    split_on(PartialArglist, ')', B, RawArglist), % TODO: ensure syntax
+    Arity = -1, %TODO:
+    write(A), write('  ----  '), write(B), write('\n'),
     Args = RawArglist.
 
 

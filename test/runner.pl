@@ -52,9 +52,9 @@ run_tests(_) :-
     neg(utils:split_on([], x, [], [])),
 
 
-    neg(utils:find_main([], _)),
-    pass(utils:find_main(['<FUN>'(main,[],['<EXPR>'(5, '+', 4)])], '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]))),
-    pass(utils:find_main(
+    neg(semantics:find_main([], _)),
+    pass(semantics:find_main(['<FUN>'(main,[],['<EXPR>'(5, '+', 4)])], '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]))),
+    pass(semantics:find_main(
         [
             '<FUN>'(kortefa,[],['<EXPR>'(2, '+', 4)]),
             '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]),
@@ -62,7 +62,7 @@ run_tests(_) :-
         ], 
         '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]))),
 
-    pass(utils:find_main(
+    pass(semantics:find_main(
         [
             '<FUN>'(almafa,[],['<EXPR>'(4, '+', 4)]),
             '<FUN>'(kortefa,[],['<EXPR>'(2, '+', 4)]),
@@ -70,13 +70,16 @@ run_tests(_) :-
         ], 
         '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]))),
 
-    pass(utils:find_main(
+    pass(semantics:find_main(
         [   
             '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]),
             '<FUN>'(almafa,[],['<EXPR>'(4, '+', 4)]),
             '<FUN>'(kortefa,[],['<EXPR>'(2, '+', 4)])
         ], 
         '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]))),
+
+    neg(syntax:starts_with_lowercase('Atom')),
+    pass(syntax:starts_with_lowercase(apple)),
     
 
 
@@ -107,6 +110,7 @@ run_tests(_) :-
 
 
     % ARITHMETICS
+    pass(syntax:to_expression([683,*,2], '<EXPR>'(683,*,2))),
     pass(syntax:to_expression([5, '+', '(', 4, '-', 3, ')'], '<EXPR>'(5,+,'<EXPR>'(4,-,3)))),
     pass(syntax:to_expression([5, '+', '(', '(', 4, '-', 1, ')', '/', 2, ')'], '<EXPR>'(5,+,'<EXPR>'('<EXPR>'(4,-,1),/,2)))),
     pass(syntax:to_expression(['(', 5, '+', '(', 4, '-', 1, ')', ')', '/', 2], '<EXPR>'('<EXPR>'(5,+,'<EXPR>'(4,-,1)),/,2))),
@@ -136,7 +140,11 @@ run_tests(_) :-
 
 run_only_on('SICStus 4.7.1') :-
     % TODO:
-    erl:run('examples/arithmetics_onemain.erl', 59),
+    pass(erl:run('examples/arithmetics_onemain.erl', 59)),
+
+    % FAIL IF NO MAIN
+    neg(erl:run('examples/moddef.erl', _)),
+
     write('SICStus ONLY TESTS PASSED.\n').
 
 

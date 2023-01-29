@@ -6,7 +6,7 @@
 
 :- module( semantics, [construct_module/2] ).
 
-:- use_module( utils, [raise/1, split_on/4, init/2] ).
+:- use_module( utils, [split_on/4, init/2] ).
 
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
@@ -37,7 +37,7 @@ construct_module([Node|Nodes], ModDef, Exportlist, Funs, MOD) :-
             construct_module(Nodes, ModDef, NewExportList, Funs, MOD); 
         '<FUN>'(_, _, _) = Node ->
             construct_module(Nodes, ModDef, Exportlist, [Node|Funs], MOD);
-        write('\nERROR: Unrecognised node type'), write(Node), write('\n') % todo: universal halting
+        write('\nERROR: Unrecognised node type: '), write(Node), write('\n'), fail
         %construct_module(Nodes, NewModDef, Exportlist, Funs, MOD);
     ).
 
@@ -51,16 +51,16 @@ declare_module(OldDef, Def, NewDef) :-
         % module is already defined
         '<MOD>'(ModName) = OldDef ->
             NewDef = OldDef,
-            write('\nERROR: Module already defined'); % todo: universal halting
+            write('\nERROR: Module already defined'), fail; 
         
         % not a module definition
         '!none' = OldDef ->
         % if 'Def' would have a correct syntax, an earlier clause would have run
             NewDef = OldDef,
-            write('\nERROR: Not a module definition'); % todo: universal halting
+            write('\nERROR: Not a module definition'), fail; 
         
         % default
-        write('ERROR: while module def, unknow.') % todo: universal halting
+        write('ERROR: while module def, unknow.'), fail
     
     ).
 
@@ -76,22 +76,26 @@ declare_explist(OldDef, Def, NewDef) :-
         % module is already defined
         '$EXPORT'(ExpList) = OldDef ->
             NewDef = OldDef,
-            write('\nERROR: Explist is already defined'); % todo: universal halting
+            write('\nERROR: Explist is already defined'), fail; 
         
         % not a module definition
         '!none' = OldDef ->
         % if 'Def' would have a correct syntax, an earlier clause would have run
             NewDef = OldDef,
-            write('\nERROR: Not a explist definition'); % todo: universal halting
+            write('\nERROR: Not a explist definition'), fail; 
         
         % default
         write('ERROR: while explist def, unknow. \n NewDef: '), 
-        write(Def),  write('\n OldDef: '), write(OldDef) % todo: universal halting
+        write(Def),  write('\n OldDef: '), write(OldDef), fail
     
     ).
 
+find_main([Fun|_], Main) :-
+    '<FUN>'(main, _, _) = Fun,
+    Main = Fun.
 
+find_main([_|Funlist], Main) :- find_main(Funlist, Main).
+fund_main([], []).
 
 %TODO: tests for errors
 % TODO: test for multiple functions in module
-% TODO: clean this section

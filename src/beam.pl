@@ -1,8 +1,10 @@
-% TODO: docs
-% 
+% This module contains evaluation predicates for
+% ProErl – Simple Erlang Interpreter in Prolog
+%
+% Named after Erlang's Virtual Machine: the BEAM :-)
 
 :- module( beam, [eval/2] ).
-:- use_module( syntax, [is_expr/1, is_function/1] ).
+:- use_module( syntax, [is_expr/1, is_function/1, is_atom/1] ).
 
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
@@ -27,6 +29,8 @@ do_math(L, '*', R, Result) :- Result is L*R.
 
 eval(Node, Result) :- is_expr(Node), eval_arith(Node, Result).
 eval(Node, Result) :- is_function(Node), eval_function(Node, Result).
+eval('<ATOM>'(Atom), Atom) :- is_atom(Atom).
+eval(Node, _) :- write('Unable to evaluate: '), write(Node), fail.
 
 
 % TODO: differenciálni kellene a funciton és a function call között

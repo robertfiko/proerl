@@ -3,26 +3,35 @@
  :- module( erl, [run/1, run/2] ).
 
 :- use_module( scan, [scan/2, reap_tokens/2] ).
-:- use_module(library(lists), [exclude/3]).
+:- use_module(library(lists), [exclude/3, reverse/2]).
 :- set_prolog_flag(toplevel_print_options,
     [quoted(true),numbervars(true),portrayed(true),
                                    max_depth(1000)]).
 
-%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%
+
+
+
+%%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
 run(Result) :- run('examples/arithmetics.erl', Result).
+%%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
 
-
-%%%% MAIN IO %%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   MAIN IO 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 run(Path, Final) :- 
     scan_whole_file(Path, Result),
-    init(Result, TermList),
+    init(Result, TermList0),
+    exclude(=([]), TermList0, TermList),
     parse_terms(TermList, NodeList),
 
     Final = NodeList.
 
 
-%%%%% INTERNAL %%%%%%
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   INTERNAL Functions 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 scan_whole_file(Path, Result) :-
@@ -45,12 +54,6 @@ start_scan([List|OtherResults]) :-
     
     
 % parsing terms: either ATTRIBUTE or FUNCTION
-% parse_tl_term([-,module,'(',simple,')','.'], A).
-% attribute(['-',module,'(',simple,')','.'], A).
-% attribute([-,alma,'(',simple,')','.'], A).
-% is_attribute([alma,module,'(',simple,')','.']).
-
-
 parse_terms([],[]).
 
 % In case of attributes
@@ -102,27 +105,45 @@ attribute([-,export|Rest], '<EXPORT>'(ExportList)) :- % TODO: nem működik
 % split_on([foo,'(','_',')',->,ok,'.'], '->', FunHeader, FunBody).
 
 %split_on(MaybeFun, '->', FunHeader, FunBody),
+% TEST erl:take_until_funbody([[],[5,+,4,,],[683,*,2,.],[main,(,),->],[foo,(,whatever,),.]], R).
 function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
+    %write(TermList),
     split_on(MaybeFun, '->', FunHeader, FunBody0),
     split_on(FunHeader, '(', [FunName], Args),
+    write(FunHeader), write('\n'),
     split_on(Args, ')', Arglist0, []),
     exclude(=(','), Arglist0, Arglist), %TODO: explain this
-    take_until_funbody([FunBody0|TermList], fun_construct(FunBody1, Rem)),
+    write(Arglist), write('\n'), write([FunBody0|TermList]), write('\n'), write('\n'),
+    take_until_funbody([FunBody0|TermList], FunBody, Rem),
+    write(Arglist), write('\n'),write('\n'),
+
+    write('----OK----'),
+    %write(fun_construct(FunBody1, Rem)),
 
     FunBody = FunBody1.
 
+% TODO: get rid of empty lists in function body
 
-% take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']], [[szilva]]).
-% take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], A).
 
-%take_until_funbody([], [], []).
+% TEST erl:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']], [[szilva]]).
+% TEST erl:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [bar, '(', ')', ->], [ok, '.']], [[korte,','],[5,+,6,'.']], [[bar, '(', ')', ->], [ok, '.']]).
 
-take_until_funbody([H|T], fun_construct([H|Result], T)) :-
-    last('.', H), !.
-    %take_until_funbody(T, Result).
+take_until_funbody(Terms, Funbody, Rem) :-
+    take_until_funbody(Terms, [], Funbody, Rem).
 
-take_until_funbody([H|T], [H|Result]) :-
-    take_until_funbody(T, Result).
+take_until_funbody([], Funbody, Funbody, []).
+
+take_until_funbody([H|T], Acc, Funbody, Rem) :-
+    (   last('.', H) ->  
+            FunbodyRev = [H|Acc],
+            reverse(Funbody, FunbodyRev),
+            Rem = T
+        ;   
+            take_until_funbody(T, [H|Acc], Funbody, Rem)
+    ).
+
+
+
 
 % Function Body Item
 % PASS will contain the leftover stuff 

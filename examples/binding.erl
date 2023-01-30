@@ -3,6 +3,5 @@
 
 main() -> 
     Alma = 5*(2+3),
-    Alma,
-    szilve.
+    Alma.
 

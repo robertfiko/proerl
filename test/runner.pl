@@ -118,6 +118,15 @@ run_tests(_) :-
     pass(beam:eval_arith('<EXPR>'(5,+,'<EXPR>'('<EXPR>'(4,-,1),/,2)), 6.5)),
     %pass(erl:eval_arith('<EXPR>'('<EXPR>'(5,+,'<EXPR>'(4,-,1)),/,2), 4 )),
     %TODO: failing on Sicstus
+
+
+    % BEAM UNITS
+    pass(beam:get_value('$Alma', error(not_bound))),
+    pass(beam:bind_value('$Alma', 'Apple', ok)),
+    pass(beam:get_value('$Alma', ok('Apple'))),
+    pass(beam:bind_value('$Alma', 'Apple', already_bound)),
+    neg(beam:bind_value('$Alma', 'Apfel', cannot_redifine)),
+    pass(beam:get_value('$Alma', ok('Apple'))),
     
 
     ( 

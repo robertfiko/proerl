@@ -93,7 +93,6 @@ function_body([Term|FBody], [Node|Nodes]) :-
 
 % In Function body: Artih Expression | Atoms |
 % TODO: Function call, 
-% TODO: variables
 % TODO: variable bindings
 
 % For Arithmetic Expressions
@@ -107,10 +106,19 @@ fbody_item(Term, Node) :-
     init(Term, SmallTerm), % this probably can an obstacle to multi-statement lines
     to_function_call(SmallTerm, Node).
 
+% For Atoms
 fbody_item(Term, Node) :-
     init(Term, [Atom]),
     is_atom(Atom),
     Node = '<ATOM>'(Atom).
+
+% For Bindings
+fbody_item(Term, Node) :-
+    to_binding(Term, Node).
+
+% For Variables
+fbody_item(Term, Node) :-
+    to_variable(Term, Node).
 
 % FALLBACK ~ DEFAULT
 fbody_item(Term, '<???>'(Term)) :-
@@ -181,3 +189,15 @@ to_function_call([FunName|Term], '<FUNCALL>'(FunName, Arity, Args)) :-
     Args = RawArglist.
 
 
+to_binding(Term, Node) :-
+    split_on(Term, '=', [LeftSide], RightSide), % ensure that on the left side there is only one thing
+    init(RightSide, SmallRightSide),  % TODO: small side should be rather evaluated but maybe in beam 
+    Node = '<BINDING>'(LeftSide, SmallRightSide).
+
+
+accept_var([V,'.'], V). accept_var([V,','], V).
+to_variable(Term, Node) :-
+    accept_var(Term, V),
+    Node = '<VAR>'(V). %TODO: doc what kind of nodes we have
+% TODO: check if has correct naming syntax
+    

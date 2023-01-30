@@ -3,18 +3,17 @@
 
 For some simple explanation on theoritical sections please check [THEORITICAL.md](THEORITICAL.md)
 ## TODO:
-- [ ] Error handling
-- [ ] No chars
-- [ ] Multiple statements in one line
-- [ ] scan.pl check 
-- [ ] list operations
+- [ ] DOC: Error handling
+- [ ] IMPLEMENT: CHARS
+
+TODO: http://aszt.inf.elte.hu/~asvanyi/pl/cm/pas/scan.pl SCAN
 
 ## Prerequisites
 - Sicstus 4.7.1
 - Docker
 - GNU Make
 
-## Limitations
+## Limitations and rules on the accepted syntax
 
 This Erlang ""interpreter"" can only interpret simple Erlang codes, according to the following rules:
 
@@ -30,19 +29,19 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - No dots (`.`) anywhere else besides marking the end of the function and attributes.
   - So no floats
 - Function closing dot should be at the end of the last term of the function 
-- Each term in fucntion should be in new line
+- Each term/statement in function should be in new line
 - Strings are not allowed 
-
-## Possibilities
-- Skipping comments
+- Variables cannot be statements alone, like: `... Variable, ...`
+- Comments are skipped
 
 
 ## Opportunities for further development
 - Cross-module function calls
 - Complete testing on SWI Prolog and/or Sicstus image (legal issues)
-- Intorduceing basic logic expressions (`and`, `or`) in function body.
+- Intorducing basic logic expressions (`and`, `or`) in function body.
 - Right now, each term/statement should be in new line; it should allow to have multiple ones in one line
 - Allow that function closing dot to be in a new line
+- List operations
 
 
 ## Testing 

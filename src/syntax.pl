@@ -192,12 +192,20 @@ to_function_call([FunName|Term], '<FUNCALL>'(FunName, Arity, Args)) :-
 to_binding(Term, Node) :-
     split_on(Term, '=', [LeftSide], RightSide), % ensure that on the left side there is only one thing
     init(RightSide, SmallRightSide),  % TODO: small side should be rather evaluated but maybe in beam 
-    Node = '<BINDING>'(LeftSide, SmallRightSide).
+
+    % on the right hand side similar items can occour than in the function body
+    fbody_item(RightSide, RighNode),
+    % TODO: check for correctnes on all types
+    Node = '<BINDING>'(LeftSide, RighNode).
 
 
 accept_var([V,'.'], V). accept_var([V,','], V).
 to_variable(Term, Node) :-
     accept_var(Term, V),
-    Node = '<VAR>'(V). %TODO: doc what kind of nodes we have
-% TODO: check if has correct naming syntax
+    Node = '<VAR>'(V). 
+
+
+
+    %TODO: doc what kind of nodes we have
+% TODO: check if has correct naming syntax on variables
     

@@ -80,11 +80,7 @@ bind_value(Variable, Value, Success) :-
 
 accpet_bind(already_bound). accpet_bind(ok).
 eval_binding(L, R, Result) :-
-    write('Trying to bind'), write(R),
-    eval(R, EvalR), % TODO: UNABLE TO EVALUATE BECAUSE RIGHT HAND SIDE IS NOT A SYNTACTIC NODE
-    write(EvalR),
+    eval(R, EvalR),
     bind_value(L, EvalR, Success),
     accpet_bind(Success),
-    Result = R.  %TODO: eval right hand side  
-
-
+    Result = EvalR. 

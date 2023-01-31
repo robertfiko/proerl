@@ -101,9 +101,10 @@ find_fun([H|_], Name, Arity, H) :-
     '<FUN>'(Name, Args, _) = H,
     length(Args, Arity).
 
+
 find_fun([], N, Arity, error) :- 
     write('No function definition found for '), write(N), write('/'), write(Arity),
-    write('\n'), fail. % TODO: check for this error
+    write('\n'), fail. 
 find_fun([_|T], N, Arity, Result) :- find_fun(T, N, Arity, Result).
 
 bind_funheader([], []).

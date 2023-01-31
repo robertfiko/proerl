@@ -107,6 +107,9 @@ run_tests(_) :-
     pass(syntax:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']], [[szilva]])),
     pass(syntax:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [bar, '(', ')', ->], [ok, '.']], [[korte,','],[5,+,6,'.']], [[bar, '(', ')', ->], [ok, '.']])),
 
+    neg(beam:find_fun(['<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')])], foo, 2, error)),
+    pass(beam:find_fun(['<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')])], goo, 2, '<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')]) )),
+    pass(beam:find_fun(['<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')]), '<FUN>'(goo2,['Ya','Xa'],['<VAR>'('Xa')])], goo, 2, '<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')]) )),
 
 
     % ARITHMETICS
@@ -151,11 +154,15 @@ run_tests(_) :-
 run_only_on('SICStus 4.7.1') :-
     % TODO:
     pass(erl:run('examples/arithmetics_onemain.erl', 59)),
+    pass(erl:run('examples/simple.erl', pear_tree)),
+    neg(erl:run('examples/simple.erl', error)),
+
+    
 
     % FAIL IF NO MAIN
     neg(erl:run('examples/moddef.erl', _)),
 
-    write('SICStus ONLY TESTS PASSED.\n').
+    write('\nSICStus ONLY TESTS PASSED.\n').
 
 
 

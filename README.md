@@ -48,6 +48,8 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - List operations
 - Clear boudn variables in function scope (right now after each run the whole "BEAM" is resetted)
 - Implement characters, strings (list of characters)
+- Interactive shell
+- Checking for the export list 
 
 
 ## Testing 

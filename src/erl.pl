@@ -1,6 +1,5 @@
 % The interface module for ProErl – Simple Erlang Interpreter in Prolog
 % Use run(Path, Result) to evaluate an Erlan file, witha  main/0 function
-% TODO: shell
 
 :- module( erl, [run/1, run/2] ).
 

@@ -53,8 +53,9 @@ function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
     split_on(Args, ')', Arglist0, []),
     exclude(=(','), Arglist0, Arglist), % filters element where goal failed
     take_until_funbody([FunBody0|TermList], FunBody1, Rem),
-    exclude(=([]), FunBody1, FunBody2),
-    function_body(FunBody2, FunBody).
+    function_body(FunBody1, FunBody2),
+    exclude(=([]), FunBody2, FunBody).
+
 
 
 take_until_funbody(Terms, Funbody, Rem) :-
@@ -115,6 +116,12 @@ fbody_item(Term, Node) :-
 % For Variables
 fbody_item(Term, Node) :-
     to_variable(Term, Node).
+
+% For Comments
+fbody_item(['%',_], []).
+
+% Empty lines
+fbody_item([], []).
 
 % FALLBACK ~ DEFAULT
 fbody_item(Term, '<???>'(Term)) :-

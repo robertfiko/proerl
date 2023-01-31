@@ -5,8 +5,12 @@ foo(Y) -> pear_tree.
 
 goo(Ya, Xa) -> Xa.
 
+% almafa
+
 
 main() ->
+    % kortefa
+    
     Pear = london, 
     Apple = foo(london),
     foo(london),

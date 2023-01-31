@@ -2,10 +2,9 @@
 **Simple Erlang Interpreter written in Prolog**
 
 For some simple explanation on theoritical sections please check [THEORITICAL.md](THEORITICAL.md)
-## TODO:
-- [ ] DOC: Error handling
 
-TODO: http://aszt.inf.elte.hu/~asvanyi/pl/cm/pas/scan.pl SCAN
+
+TODO: http://aszt.inf.elte.hu/~asvanyi/pl/cm/pas/scan.pl
 
 ## Prerequisites
 - Sicstus 4.7.1
@@ -36,7 +35,7 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - Parameter bindings in function calls are implemented, but variable names should be globally unique
 - Keep in mind that variables are immutable
 - Variable bindings are posibble for arithmetic expressions, atoms, another variables, binding chains: (`A = B = c`)
-- Comments are recognised and skipped TODO: they are actually not
+- Comments and empty lines are recognised and skipped 
 
 
 

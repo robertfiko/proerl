@@ -95,6 +95,4 @@ find_main([Fun|_], Main) :-
     Main = Fun.
 
 find_main([_|Funlist], Main) :- find_main(Funlist, Main).
-fund_main([], []).
-
-%TODO: tests for errors
+find_main([], error) :- fail.

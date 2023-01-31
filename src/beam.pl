@@ -130,6 +130,3 @@ eval_funcall(Name, Arity, Args, Result) :-
     eval(FunNode, Result),
     gc_funheader(Arglist).
     
-
-
-% TODO: double check for function eval

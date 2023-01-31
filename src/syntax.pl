@@ -112,7 +112,7 @@ fbody_item(Term, Node) :-
     to_variable(Term, Node).
 
 % For Comments
-fbody_item(['%',_], []).
+fbody_item(['%'|_], []).
 
 % Empty lines
 fbody_item([], []).

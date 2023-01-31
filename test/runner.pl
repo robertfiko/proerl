@@ -52,6 +52,12 @@ run_tests(_) :-
     neg(utils:split_on([], x, [], [])),
 
 
+
+    pass(syntax:parse_terms([[-,module,'(',simple,')','.']], ['<MOD>'(simple)])),
+    pass(syntax:parse_terms([[foo,'(','_',')',->,ok,'.']], ['<FUN>'(foo,['_'],['<ATOM>'(ok)])])),
+    neg(syntax:parse_terms([[-,random,'(',simple,')','.']], A)),
+
+
     neg(semantics:find_main([], _)),
     pass(semantics:find_main(['<FUN>'(main,[],['<EXPR>'(5, '+', 4)])], '<FUN>'(main,[],['<EXPR>'(5, '+', 4)]))),
     pass(semantics:find_main(
@@ -128,6 +134,7 @@ run_tests(_) :-
     write('\nTHIS IS OK: '), pass(beam:bind_value('$Alma', 'Apple', already_bound)),
     neg(beam:bind_value('$Alma', 'Apfel', cannot_redifine)),
     pass(beam:get_value('$Alma', ok('Apple'))),
+
     
 
     ( 
@@ -150,9 +157,66 @@ run_tests(_) :-
 
 
 run_only_on('SICStus 4.7.1') :-
-    pass(erl:run('examples/arithmetics_onemain.erl', 59)),
-    pass(erl:run('examples/simple.erl', pear_tree)),
+    % arithmetics_onemain.erl
     beam:reset_beam(_),
+    pass(erl:run('examples/arithmetics_oneliner.erl', 9)),
+
+    write('\n --- THIS IS OK <BEGIN> ---'),
+    beam:reset_beam(_),
+    neg(erl:run('examples/arithmetics_oneliner.erl', 10)),
+    write('\n --- THIS IS OK <END> ---'),
+
+
+
+    % arithmetics_onemain.erl
+    beam:reset_beam(_),
+    pass(erl:run('examples/arithmetics_onemain.erl', 59)),
+
+    write('\n --- THIS IS OK <BEGIN> ---'),
+    beam:reset_beam(_),
+    neg(erl:run('examples/arithmetics_onemain.erl', 10)),
+
+
+
+
+    % arithmetics.erl
+    beam:reset_beam(_),
+    pass(erl:run('examples/arithmetics.erl', 1366)),
+
+    write('\n --- THIS IS OK <BEGIN> ---'),
+    beam:reset_beam(_),
+    neg(erl:run('examples/arithmetics.erl', 10)),
+
+
+
+    % atoms.erl
+    beam:reset_beam(_),
+    pass(erl:run('examples/atoms.erl', szilva)),
+
+    write('\n --- THIS IS OK <BEGIN> ---'),
+    beam:reset_beam(_),
+    neg(erl:run('examples/atoms.erl', korte)),
+
+    
+    % % TODO: chained binding not works
+    % binding.erl
+    beam:reset_beam(_),
+    pass(erl:run('examples/binding.erl', c)),
+
+    write('\n --- THIS IS OK <BEGIN> ---'),
+    beam:reset_beam(_),
+    neg(erl:run('examples/binding.erl', 16)),
+    
+    
+
+    % catchy_comments.erl
+    beam:reset_beam(_),
+    pass(erl:run('examples/catchy_comments.erl', london)),
+ 
+    
+    %%%%%%%%%%%% simple.erl %%%%%%%%%%%%
+    pass(erl:run('examples/simple.erl', pear_tree)),
+    
 
     write('\n --- THIS IS OK <BEGIN> ---'),
     neg(erl:run('examples/simple.erl', error)),
@@ -165,25 +229,8 @@ run_only_on('SICStus 4.7.1') :-
 
 
 
-% TODO: tests
+% Usefull structures for testing
 % [[-,module,'(',simple,')','.'],[-,export,'(','[',foo,/,1,']',')','.'],[],[foo,'(','_',')',->,ok,'.']]
 % [foo,'(','_',')',->,ok,'.']
-% function([foo,'(','_',')',->,ok,'.'], Term).
-
 % ['<MOD>'(arithmetics_onemain),'<EXPORT>'(['<FUNREF>'(main,0)]),'<FUN>'(main,[],['<EXPR>'(16,+,43)])]
 
-% function([bar,'(','Apple',',','Pear',')',->,london,',',foo,'(','Pear',')','.'], Term).
-% split_on([foo,'(','_',')',->,ok,'.'], '->', FunHeader, FunBody).
-
-
-%split_on(MaybeFun, '->', FunHeader, FunBody),
-% TEST erl:take_until_funbody([[],[5,+,4,,],[683,*,2,.],[main,(,),->],[foo,(,whatever,),.]], R).
-
-
-
-% syntax:parse_terms([[-,module,'(',simple,')','.']], ['<MOD>'(simple)]).
-% syntax:parse_terms([[foo,'(','_',')',->,ok,'.']], A).
-% syntax:parse_terms([[-,random,'(',simple,')','.']], A)
-
-
-% syntax:starts_with_lowercase('Atom').

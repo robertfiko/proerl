@@ -3,9 +3,6 @@
 
 For some simple explanation on theoritical sections please check [THEORITICAL.md](THEORITICAL.md)
 
-
-TODO: http://aszt.inf.elte.hu/~asvanyi/pl/cm/pas/scan.pl
-
 ## Prerequisites
 - Sicstus 4.7.1
 - Docker
@@ -38,6 +35,8 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - Variable bindings are posibble for arithmetic expressions, atoms, another variables, binding chains: (`A = B = c`)
 - Comments and empty lines are recognised and skipped 
 
+## !!!
+http://aszt.inf.elte.hu/~asvanyi/pl/cm/pas/scan.pl
 
 
 ## Opportunities for further development

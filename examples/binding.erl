@@ -7,4 +7,3 @@ main() ->
     Szilve = Korte,
     A = B = c,
     B.
-

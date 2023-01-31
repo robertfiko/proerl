@@ -1,2 +1,11 @@
-%  [[-,module,'(',simple,')','.'],[-,export,'(','[',foo,/,1,']',')','.'],[],[foo,'(','_',')',->,ok,'.'],[],[],
+-module(catchy_comments).
+-export([main/0]).
+
+% almafa
 % [bar,'(','Apple',',','Pear',')',->,london,',',foo,'(','Pear',')','.']]
+
+main() ->
+    % kortefa
+    % [bar,'(','Apple',',','Pear',')',->,london,',',foo,'(','Pear',')','.']]
+    Pear = london.
+

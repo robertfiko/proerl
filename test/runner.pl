@@ -135,14 +135,15 @@ run_tests(_) :-
             Ver = 'SICStus 4.7.1' -> 
                 run_only_on(Ver)
             ; 
-                debug('__WARNING__: UNKNOWN PROLOG VERSION, SOME TEST MAY BE SKIPPED') 
+                write('__WARNING__: UNKNOWN PROLOG VERSION, SOME TEST MAY BE SKIPPED') 
         )
-        ; debug('__WARNING__: CANNOT GET PROLOG VERSION, SOME TEST MAY BE SKIPPED')
+        ; write('__WARNING__: CANNOT GET PROLOG VERSION, SOME TEST MAY BE SKIPPED')
     ),
     
 
 
-    write('ALL TESTS PASSED').
+    write('\nALL TESTS PASSED'),
+    halt(0).
 
 
 

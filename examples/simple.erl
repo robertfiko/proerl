@@ -1,11 +1,13 @@
 -module(simple).
--export([foo/1]).
+-export([main/0]).
 
-foo(_) -> ok.
+foo(Y) -> pear_tree.
+
+goo(Ya, Xa) -> Xa.
 
 
-bar(Apple, Pear) -> london, foo(Pear).
-
-
-%  [[-,module,'(',simple,')','.'],[-,export,'(','[',foo,/,1,']',')','.'],[],[foo,'(','_',')',->,ok,'.'],[],[],
-% [bar,'(','Apple',',','Pear',')',->,london,',',foo,'(','Pear',')','.']]
+main() ->
+    Pear = london, 
+    Apple = foo(london),
+    foo(london),
+    goo(stockholm, Apple).

@@ -4,7 +4,6 @@
 For some simple explanation on theoritical sections please check [THEORITICAL.md](THEORITICAL.md)
 ## TODO:
 - [ ] DOC: Error handling
-- [ ] IMPLEMENT: CHARS
 
 TODO: http://aszt.inf.elte.hu/~asvanyi/pl/cm/pas/scan.pl SCAN
 
@@ -32,7 +31,13 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - Each term/statement in function should be in new line
 - Strings are not allowed 
 - Variables cannot be statements alone, like: `... Variable, ...`
-- Comments are skipped
+- Cannot prefix variables, that you want no binding: `_Var`, or use the discard simbol: `_` in bindings or function headers, calls
+- No multiple function clauses, so no recursion
+- Parameter bindings in function calls are implemented, but variable names should be globally unique
+- Keep in mind that variables are immutable
+- Variable bindings are posibble for arithmetic expressions, atoms, another variables, binding chains: (`A = B = c`)
+- Comments are recognised and skipped TODO: they are actually not
+
 
 
 ## Opportunities for further development
@@ -42,6 +47,8 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - Right now, each term/statement should be in new line; it should allow to have multiple ones in one line
 - Allow that function closing dot to be in a new line
 - List operations
+- Clear boudn variables in function scope (right now after each run the whole "BEAM" is resetted)
+- Implement characters, strings (list of characters)
 
 
 ## Testing 

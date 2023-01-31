@@ -1,7 +1,7 @@
 % The syntax checkers and term parsers for 
 % ProErl – Simple Erlang Interpreter in Prolog                               
 
-:- module( syntax, [parse_terms/2, is_expr/1, is_function/1] ).
+:- module( syntax, [parse_terms/2, is_expr/1, is_function_node/1] ).
 
 :- use_module( utils, [split_on/4, init/2] ).
 :- use_module(library(lists), [last/2, exclude/3, reverse/2]).
@@ -49,7 +49,7 @@ to_attribute([-,export|Rest], '<EXPORT>'(ExportList)) :-
 function(MaybeFun, TermList, '<FUN>'(FunName, Arglist, FunBody), Rem) :-
     split_on(MaybeFun, '->', FunHeader, FunBody0),
     split_on(FunHeader, '(', [FunName], Args),
-    is_atom(FunName),
+    is_atom_name(FunName),
     split_on(Args, ')', Arglist0, []),
     exclude(=(','), Arglist0, Arglist), % filters element where goal failed
     take_until_funbody([FunBody0|TermList], FunBody1, Rem),
@@ -78,9 +78,7 @@ format_export_list([Fun,/,Arity,','|Rest], ['<FUNREF>'(Fun, Arity)|FunRefRest]) 
 format_export_list([Fun,/,Arity], ['<FUNREF>'(Fun, Arity)]).
 
 
-% TODO: need to check for following comma and whether we can move on or not
-% TODO: type of params
-% TODO: type of fun Id
+% TODO: type of fun Id that it should be an atom
 % TODO: finish function call
 
 
@@ -90,11 +88,9 @@ function_body([Term|FBody], [Node|Nodes]) :-
     fbody_item(Term, Node),
     function_body(FBody, Nodes).
 
+% TODO: Function call needs further testing
 
-% In Function body: Artih Expression | Atoms |
-% TODO: Function call, 
-% TODO: variable bindings
-
+% In Function body: Artih Expression | Atoms | Function call | variable bindings
 % For Arithmetic Expressions
 fbody_item(Term, Node) :-
     init(Term, SmallTerm), % this probably can an obstacle to multi-statement lines
@@ -109,7 +105,7 @@ fbody_item(Term, Node) :-
 % For Atoms
 fbody_item(Term, Node) :-
     init(Term, [Atom]),
-    is_atom(Atom),
+    is_atom_name(Atom),
     Node = '<ATOM>'(Atom).
 
 % For Bindings
@@ -127,28 +123,33 @@ fbody_item(Term, '<???>'(Term)) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CHECKERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-is_function('<FUN>'(_, _, _)).
-
-% syntax:starts_with_lowercase('Atom').
-% 
 starts_with_lowercase(Atom) :-
     atom_chars(Atom, [FirstChar|_]),
     char_code(FirstChar, Code),
     Code >= 97,
     Code =< 122.
 
-is_atom(Term) :- 
+starts_with_uppercase(Atom) :-
+    atom_chars(Atom, [FirstChar|_]),
+    char_code(FirstChar, Code),
+    Code >= 65,
+    Code =< 90.
+
+
+
+is_function_node('<FUN>'(_, _, _)).
+is_atom_node('<ATOM>'(A)) :- is_atom_name(A).
+is_variable_node('<VAR>'(V)) :- is_variable_name(V).
+
+
+is_atom_name(Term) :- 
     atom(Term), 
     starts_with_lowercase(Term).
 
 
-is_var_name(['_',A|_]) :- char_type(A, upper).
-is_var_name([A|_]) :- char_type(A, upper).
-is_variable(Term) :-
+is_variable_name(Term) :- 
     atom(Term),
-    atom_chars(Term, Chars),
-    is_var_name(Chars).
+    starts_with_uppercase(Term).
 
 
 is_op('+'). is_op('-'). is_op('*'). is_op('/').
@@ -180,32 +181,70 @@ to_expression([], Result, Collector) :-
 
 
 
+
+% For Arithmetic Expressions TODO:
+%arg_item(Term, Node) :-
+%    init(Term, SmallTerm), % this probably can an obstacle to multi-statement lines
+%    to_expression(SmallTerm, Node),
+%    is_expr(Node).
+
+% For Atoms
+arg_item(Term, Node) :-
+    is_atom_name(Term),
+    Node = '<ATOM>'(Term).
+
+
+% For Variables
+arg_item(Term, Node) :-
+    is_variable_name(Term),
+    Node = '<VAR>'(Term). 
+
+% FALLBACK ~ DEFAULT
+arg_item(Term, '<???>'(Term)) :-
+    write('Unknow arg term: '), write(Term), write('\n'), fail.
+
+
+% In FCall args can be: Atom, Expression, Var
+% We can start by using the to_funbody predicate, than introduce some safe cheks
+% Accepted types: EXPR | ATOM | VAR
+accept_as_arg_item(N) :- is_expr(N).
+accept_as_arg_item(N) :- is_atom_node(N).
+accept_as_arg_item(N) :- is_variable_node(N).
+accept_as_arg_item(X) :- write('Cannot bind to arg: '), write(X), write('\n'), fail.
+to_arglist_nodes([], []).
+to_arglist_nodes([A|Args], [N|Nodes]) :- % arith atom var
+    arg_item(A, N), 
+    accept_as_arg_item(N),
+    to_arglist_nodes(Args, Nodes).
+
 to_function_call([FunName|Term], '<FUNCALL>'(FunName, Arity, Args)) :-
-    is_atom(FunName),
-    split_on(Term, '(', A, PartialArglist), % TODO: ensure syntax
-    split_on(PartialArglist, ')', B, RawArglist), % TODO: ensure syntax
-    Arity = -1, %TODO:
-    write(A), write('  ----  '), write(B), write('\n'),
-    Args = RawArglist.
+    is_atom_name(FunName),
+    split_on(Term, '(', [], PartialArglist), 
+    split_on(PartialArglist, ')', RawArglist, []),
+    exclude(=(','), RawArglist, Arglist),
+    length(Arglist, Arity),
+    to_arglist_nodes(Arglist, Args).
 
 
 to_binding(Term, Node) :-
     split_on(Term, '=', [LeftSide], RightSide), % ensure that on the left side there is only one thing
-    init(RightSide, SmallRightSide),  % TODO: small side should be rather evaluated but maybe in beam 
 
     % on the right hand side similar items can occour than in the function body
     fbody_item(RightSide, RighNode),
+
+    %TODO: check if works with fun calls
     % TODO: check for correctnes on all types
+    
     Node = '<BINDING>'(LeftSide, RighNode).
 
 
-accept_var([V,'.'], V). accept_var([V,','], V).
+unwrap_var([V,'.'], V). unwrap_var([V,','], V). unwrap_var(V, V) :- is_atom_name(V).
 to_variable(Term, Node) :-
-    accept_var(Term, V),
+    unwrap_var(Term, V),
+    is_variable_name(V),
     Node = '<VAR>'(V). 
 
 
 
     %TODO: doc what kind of nodes we have
-% TODO: check if has correct naming syntax on variables
     

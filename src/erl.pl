@@ -7,7 +7,7 @@
 :- use_module( scan, [scan/2, reap_tokens/2] ).
 :- use_module( syntax, [parse_terms/2] ).
 :- use_module( semantics, [construct_module/2, find_main/2] ).
-:- use_module( beam, [eval/2] ).
+:- use_module( beam, [eval/2, set_mod/1, reset_beam/1 ] ).
 :- use_module( utils, [init/2] ).
 
 :- set_prolog_flag(toplevel_print_options,
@@ -21,7 +21,7 @@
 
 
 %%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
-run(Result) :- run('examples/binding.erl', Result).
+run(Result) :- run('examples/simple.erl', Result).
 %%%%%%%%%%%%%%% ?? ONLY FOR TESTING PURPOSES ?? %%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -34,8 +34,10 @@ run(Path, Final) :-
     parse_terms(TermList, NodeList),
     construct_module(NodeList, Module),
     write(NodeList), write('\n'),
-
     '$MODULE'(_, _, FunList) = Module,
+
+    reset_beam(_),
+    set_mod(Module),
     find_main(FunList, Main),
     write('Main found, running it!\n'), 
     eval(Main, Value),
@@ -67,4 +69,4 @@ start_scan([List|OtherResults]) :-
     ).
 
 
-% TODO: scan.pl-t visszaállítani kié??
+

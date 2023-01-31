@@ -3,5 +3,8 @@
 
 main() -> 
     Alma = 5*(2+3),
-    Alma.
+    Korte = pear,
+    Szilve = Korte,
+    A = B = c,
+    B.
 

@@ -88,8 +88,8 @@ run_tests(_) :-
     pass(syntax:to_attribute([-,module,'(',simple,')','.'], '<MOD>'(simple))),
     neg(syntax:to_attribute([-,module,'(',simple,')','.'], '<MOD>'(simple_random))),
     pass(syntax:to_attribute([-,export,'(','[',foo,/,1,']',')','.'], '<EXPORT>'(['<FUNREF>'(foo,1)]))),
-    % TODO: empty export list
-    % TODO: longer export list
+    pass(syntax:to_attribute([-,export,'(','[',']',')','.'], '<EXPORT>'([]))),
+    pass(syntax:to_attribute([-,export,'(','[',foo,/,1,',',bar,/,2,']',')','.'], '<EXPORT>'(['<FUNREF>'(foo,1), '<FUNREF>'(bar,2)]))),
     neg(syntax:to_attribute([-,cica,'(',simple,')','.'], _)), % not an attribute
     neg(syntax:to_attribute([cica,'(',simple,')','.'], _)), % not an attribute syntax
 
@@ -177,3 +177,6 @@ run_only_on('SICStus 4.7.1') :-
 % syntax:parse_terms([[-,module,'(',simple,')','.']], ['<MOD>'(simple)]).
 % syntax:parse_terms([[foo,'(','_',')',->,ok,'.']], A).
 % syntax:parse_terms([[-,random,'(',simple,')','.']], A)
+
+
+% syntax:starts_with_lowercase('Atom').

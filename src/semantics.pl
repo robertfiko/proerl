@@ -98,4 +98,3 @@ find_main([_|Funlist], Main) :- find_main(Funlist, Main).
 fund_main([], []).
 
 %TODO: tests for errors
-% TODO: test for multiple functions in module

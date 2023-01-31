@@ -32,6 +32,7 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - Variables cannot be statements alone, like: `... Variable, ...`
 - Cannot prefix variables, that you want no binding: `_Var`, or use the discard simbol: `_` in bindings or function headers, calls
 - No multiple function clauses, so no recursion
+- Functions should be only called with atoms or variables.
 - Parameter bindings in function calls are implemented, but variable names should be globally unique
 - Keep in mind that variables are immutable
 - Variable bindings are posibble for arithmetic expressions, atoms, another variables, binding chains: (`A = B = c`)

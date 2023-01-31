@@ -79,17 +79,11 @@ format_export_list([Fun,/,Arity,','|Rest], ['<FUNREF>'(Fun, Arity)|FunRefRest]) 
 format_export_list([Fun,/,Arity], ['<FUNREF>'(Fun, Arity)]).
 
 
-% TODO: type of fun Id that it should be an atom
-% TODO: finish function call
-
-
-
 function_body([],[]).
 function_body([Term|FBody], [Node|Nodes]) :-
     fbody_item(Term, Node),
     function_body(FBody, Nodes).
 
-% TODO: Function call needs further testing
 
 % In Function body: Artih Expression | Atoms | Function call | variable bindings
 % For Arithmetic Expressions
@@ -147,6 +141,7 @@ starts_with_uppercase(Atom) :-
 is_function_node('<FUN>'(_, _, _)).
 is_atom_node('<ATOM>'(A)) :- is_atom_name(A).
 is_variable_node('<VAR>'(V)) :- is_variable_name(V).
+is_funcall_node('<FUNCALL>'(FunName, Arity, Args)) :- is_atom_name(FunName).
 
 
 is_atom_name(Term) :- 
@@ -186,15 +181,6 @@ to_expression([], Result, Collector) :-
     [A,B,C] = Collector,
     Result = '<EXPR>'(C, B, A).
 
-
-
-
-% For Arithmetic Expressions TODO:
-%arg_item(Term, Node) :-
-%    init(Term, SmallTerm), % this probably can an obstacle to multi-statement lines
-%    to_expression(SmallTerm, Node),
-%    is_expr(Node).
-
 % For Atoms
 arg_item(Term, Node) :-
     is_atom_name(Term),
@@ -232,15 +218,16 @@ to_function_call([FunName|Term], '<FUNCALL>'(FunName, Arity, Args)) :-
     length(Arglist, Arity),
     to_arglist_nodes(Arglist, Args).
 
-
+accepted_binding_right(Node) :- is_expr(Node).
+accepted_binding_right(Node) :- is_atom_node(Node).
+accepted_binding_right(Node) :- is_variable_node(Node).
+accepted_binding_right(Node) :- is_funcall_node(Node).
 to_binding(Term, Node) :-
     split_on(Term, '=', [LeftSide], RightSide), % ensure that on the left side there is only one thing
 
     % on the right hand side similar items can occour than in the function body
     fbody_item(RightSide, RighNode),
-
-    %TODO: check if works with fun calls
-    % TODO: check for correctnes on all types
+    accepted_binding_right(RighNode),
     
     Node = '<BINDING>'(LeftSide, RighNode).
 
@@ -251,7 +238,4 @@ to_variable(Term, Node) :-
     is_variable_name(V),
     Node = '<VAR>'(V). 
 
-
-
-    %TODO: doc what kind of nodes we have
     

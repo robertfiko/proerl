@@ -107,7 +107,7 @@ run_tests(_) :-
     pass(syntax:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [szilva]], [[korte,','],[5,+,6,'.']], [[szilva]])),
     pass(syntax:take_until_funbody([[korte, ','], [5, '+', 6, '.'], [bar, '(', ')', ->], [ok, '.']], [[korte,','],[5,+,6,'.']], [[bar, '(', ')', ->], [ok, '.']])),
 
-    neg(beam:find_fun(['<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')])], foo, 2, error)),
+    write('\nTHIS IS OK: '), neg(beam:find_fun(['<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')])], foo, 2, error)),
     pass(beam:find_fun(['<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')])], goo, 2, '<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')]) )),
     pass(beam:find_fun(['<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')]), '<FUN>'(goo2,['Ya','Xa'],['<VAR>'('Xa')])], goo, 2, '<FUN>'(goo,['Ya','Xa'],['<VAR>'('Xa')]) )),
 
@@ -119,15 +119,13 @@ run_tests(_) :-
     pass(syntax:to_expression(['(', 5, '+', '(', 4, '-', 1, ')', ')', '/', 2], '<EXPR>'('<EXPR>'(5,+,'<EXPR>'(4,-,1)),/,2))),
 
     pass(beam:eval_arith('<EXPR>'(5,+,'<EXPR>'('<EXPR>'(4,-,1),/,2)), 6.5)),
-    %pass(erl:eval_arith('<EXPR>'('<EXPR>'(5,+,'<EXPR>'(4,-,1)),/,2), 4 )),
-    %TODO: failing on Sicstus
-
+    pass(beam:eval_arith('<EXPR>'('<EXPR>'(6,+,'<EXPR>'(4,-,1)),/,2), 4.5 )),
 
     % BEAM UNITS
     pass(beam:get_value('$Alma', error(not_bound))),
     pass(beam:bind_value('$Alma', 'Apple', ok)),
     pass(beam:get_value('$Alma', ok('Apple'))),
-    pass(beam:bind_value('$Alma', 'Apple', already_bound)),
+    write('\nTHIS IS OK: '), pass(beam:bind_value('$Alma', 'Apple', already_bound)),
     neg(beam:bind_value('$Alma', 'Apfel', cannot_redifine)),
     pass(beam:get_value('$Alma', ok('Apple'))),
     
@@ -152,15 +150,16 @@ run_tests(_) :-
 
 
 run_only_on('SICStus 4.7.1') :-
-    % TODO:
     pass(erl:run('examples/arithmetics_onemain.erl', 59)),
     pass(erl:run('examples/simple.erl', pear_tree)),
-    neg(erl:run('examples/simple.erl', error)),
+    beam:reset_beam(_),
 
-    
+    write('\n --- THIS IS OK <BEGIN> ---'),
+    neg(erl:run('examples/simple.erl', error)),
+    write('\n --- THIS IS OK <END> ---'),
 
     % FAIL IF NO MAIN
-    neg(erl:run('examples/moddef.erl', _)),
+    neg(erl:run('examples/moddef.erl', error)),
 
     write('\nSICStus ONLY TESTS PASSED.\n').
 

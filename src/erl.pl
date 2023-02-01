@@ -32,7 +32,7 @@ run(Path, Final) :-
     exclude(=([]), TermList0, TermList),
     parse_terms(TermList, NodeList),
     construct_module(NodeList, Module),
-    write(NodeList), write('\n'),
+    %write(NodeList), write('\n'),
     '$MODULE'(_, _, FunList) = Module,
 
     reset_beam(_),

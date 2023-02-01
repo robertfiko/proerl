@@ -48,7 +48,7 @@ eval('<VAR>'(V), Result) :- eval_var(V, Result).
 eval('<FUNCALL>'(Name, Arity, Args), Result) :- eval_funcall(Name, Arity, Args, Result).
 eval(Node, _) :- write('Unable to evaluate: '), write(Node), fail.
 
-eval_function('<FUN>'(Name, _, FunBody), Result) :- 
+eval_function('<FUN>'(_, _, FunBody), Result) :- 
     eval_funbody(FunBody, Result).
 
 eval_funbody([H], Result) :-

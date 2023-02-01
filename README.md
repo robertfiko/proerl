@@ -35,7 +35,7 @@ This Erlang ""interpreter"" can only interpret simple Erlang codes, according to
 - Variable bindings are posibble for arithmetic expressions, atoms, another variables, binding chains: (`A = B = c`)
 - Comments and empty lines are recognised and skipped 
 
-## !!!
+## Used source codes:
 http://aszt.inf.elte.hu/~asvanyi/pl/cm/pas/scan.pl
 
 

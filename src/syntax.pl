@@ -1,7 +1,7 @@
 % The syntax checkers and term parsers for 
 % ProErl – Simple Erlang Interpreter in Prolog                               
 
-:- module( syntax, [parse_terms/2, is_expr/1, is_function_node/1] ).
+:- module( syntax, [parse_terms/2, is_expr/1, is_function_node/1, is_atom_name/1] ).
 
 :- use_module( utils, [split_on/4, init/2] ).
 :- use_module(library(lists), [last/2, exclude/3, reverse/2]).
@@ -141,7 +141,8 @@ starts_with_uppercase(Atom) :-
 is_function_node('<FUN>'(_, _, _)).
 is_atom_node('<ATOM>'(A)) :- is_atom_name(A).
 is_variable_node('<VAR>'(V)) :- is_variable_name(V).
-is_funcall_node('<FUNCALL>'(FunName, Arity, Args)) :- is_atom_name(FunName).
+is_funcall_node('<FUNCALL>'(FunName, _, _)) :- is_atom_name(FunName).
+is_binding_node('<BINDING>'(_L, _R)).
 
 
 is_atom_name(Term) :- 
@@ -222,6 +223,7 @@ accepted_binding_right(Node) :- is_expr(Node).
 accepted_binding_right(Node) :- is_atom_node(Node).
 accepted_binding_right(Node) :- is_variable_node(Node).
 accepted_binding_right(Node) :- is_funcall_node(Node).
+accepted_binding_right(Node) :- is_binding_node(Node).
 to_binding(Term, Node) :-
     split_on(Term, '=', [LeftSide], RightSide), % ensure that on the left side there is only one thing
 

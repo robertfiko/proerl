@@ -4,7 +4,7 @@
 % At this point the syntactical nodes are present, so we can start the 
 % semantical analysis
 
-:- module( semantics, [construct_module/2] ).
+:- module( semantics, [construct_module/2, find_main/2] ).
 
 :- use_module( utils, [split_on/4, init/2] ).
 

@@ -8,6 +8,9 @@ For some simple explanation on theoritical sections please check [THEORITICAL.md
 - Docker
 - GNU Make
 
+## How to use it
+`make pl` and `run(Path, Answer).` predicate. 
+
 ## Limitations and rules on the accepted syntax
 
 This Erlang ""interpreter"" can only interpret simple Erlang codes, according to the following rules:
